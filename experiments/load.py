@@ -1,4 +1,3 @@
-
 from src.framework.config import MODEL_NAME
 from src.framework.loader import load_model
 from src.framework.metrics import (
@@ -7,10 +6,9 @@ from src.framework.metrics import (
     get_peak_gpu_memory,
 )
 
-
 def main():
     print("=" * 60)
-    print("Qwen 1.5B — 4-bit Model Loading Test")
+    print("Model Loading Test")
     print("=" * 60)
 
     print(f"\nModel: {MODEL_NAME}")
@@ -36,7 +34,6 @@ def main():
     print(f"Peak allocated: {peak:.2f} GB")
 
     print("\nModel loaded successfully.")
-
 
 if __name__ == "__main__":
     main()
