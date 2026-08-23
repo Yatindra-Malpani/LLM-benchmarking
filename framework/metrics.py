@@ -8,7 +8,6 @@ def get_gpu_memory():
         allocated_gb: Memory currently occupied by tensors.
         reserved_gb: Memory reserved by PyTorch.
     """
-
     allocated = torch.cuda.memory_allocated()
     reserved = torch.cuda.memory_reserved()
 
