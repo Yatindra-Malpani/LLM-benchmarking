@@ -1,4 +1,4 @@
-from src.framework.config import MODEL_NAME
+from src.framework.config import MODELS
 from src.framework.loader import load_model
 from src.framework.metrics import (
     reset_gpu_peak_memory,
@@ -11,13 +11,13 @@ def main():
     print("Model Loading Test")
     print("=" * 60)
 
-    print(f"\nModel: {MODEL_NAME}")
-
+    model_name = MODELS[0]
+    print(f"\nModel: {model_name}")
     # Reset peak memory statistics before loading
     reset_gpu_peak_memory()
 
     # Load model
-    tokenizer, model, load_time = load_model()
+    tokenizer, model, load_time = load_model(model_name)
 
     # GPU memory statistics
     allocated, reserved = get_gpu_memory()
@@ -32,7 +32,7 @@ def main():
     print(f"Allocated:      {allocated:.2f} GB")
     print(f"Reserved:       {reserved:.2f} GB")
     print(f"Peak allocated: {peak:.2f} GB")
-
+    
     print("\nModel loaded successfully.")
 
 if __name__ == "__main__":
