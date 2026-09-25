@@ -10,6 +10,7 @@ def generate_response(
     max_new_tokens=100,
     temperature=0.7,
 ):
+    # Prepare input
     inputs = tokenizer.apply_chat_template(
         messages,
         tokenize=True,
@@ -22,15 +23,18 @@ def generate_response(
 
     input_length = inputs["input_ids"].shape[1]
 
+    # Reset GPU memory tracking
     torch.cuda.reset_peak_memory_stats()
     torch.cuda.synchronize()
 
+    # Create streamer for TTFT measurement
     streamer = TextIteratorStreamer(
         tokenizer,
         skip_prompt=True,
         skip_special_tokens=True,
     )
 
+    # Generation configuration
     generation_kwargs = {
         **inputs,
         "max_new_tokens": max_new_tokens,
@@ -39,19 +43,21 @@ def generate_response(
         "streamer": streamer,
     }
 
+    # Start generation
     start_time = time.perf_counter()
 
     thread = Thread(
         target=model.generate,
         kwargs=generation_kwargs,
     )
-
     thread.start()
 
+    # Collect generated output
     first_token_time = None
     response_parts = []
 
     for text in streamer:
+
         if first_token_time is None:
             torch.cuda.synchronize()
             first_token_time = time.perf_counter()
@@ -60,11 +66,14 @@ def generate_response(
 
     thread.join()
 
+    # Finish timing
     torch.cuda.synchronize()
     end_time = time.perf_counter()
 
+    # Build response
     response = "".join(response_parts)
 
+    # Calculate metrics
     ttft = first_token_time - start_time
 
     generation_time = end_time - start_time
@@ -75,14 +84,19 @@ def generate_response(
             add_special_tokens=False,
         )
     )
+
     tokens_per_second = (
         output_tokens / generation_time
         if generation_time > 0
         else 0
     )
 
-    peak_vram = torch.cuda.max_memory_allocated() / (1024 ** 3)
+    peak_vram = (
+        torch.cuda.max_memory_allocated()
+        / (1024 ** 3)
+    )
 
+    # Store metrics
     metrics = {
         "input_tokens": input_length,
         "output_tokens": output_tokens,
@@ -91,4 +105,5 @@ def generate_response(
         "tokens_per_second": tokens_per_second,
         "peak_vram_gb": peak_vram,
     }
+
     return response, metrics
